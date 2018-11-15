@@ -1,0 +1,15 @@
+what are constraints?
+
+	business rules.
+	validations at table/column level
+
+	primary keys   - 1 pk per table, no dups, no nulls,
+
+	foreign kets   - allows duplicates, allows null, muliple fk
+
+	not null       - allows duplicates
+
+ 	check 
+	unique
+	composite key
+	suggogate
