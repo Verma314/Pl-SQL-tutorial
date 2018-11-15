@@ -1,0 +1,283 @@
+
+
+
+
+
+
+- Plan of action:
+	1. pl sql.
+
+
+- oracle:
+
+sqlplus 
+username - sys as sysdba
+password - * enter pass *
+
+
+> show user
+
+
+.........
+
+
+DELETE: DML, AC off, one or multiple rows, can rb, str is retained. DML. 
+
+
+DROP: deletes structure, data and index, triggers, constraints, invalidates views, no rollback, can flashback, 
+
+
+
+TRUNCATE: cannot rb, cannot fb, truncate an entire table, STRUCTURE IS RETAINED. DDL
+
+
+
+*) a schema is a collection of objects, 
+SQL : table, sequence, synonyms, view, index, etc.
+
+PLSQL: procedure, function, K,trigger.
+
+
+--------
+
+
+why plsql:
+- variables
+- loops
+= procedures and functions
+- package
+- improved performance
+- exceptions
+- oop
+- datatypes, scalar and composit datatypes
+- 
+
+
+=-------
+
+plsql:
+
+
+
+
+DECLARE (optional)
+        we declare variabls, exceptions, cursors and local-sub-programs here,
+BEGIN
+	sql + plsql code
+exception (optional)
+	handler errors
+end;
+
+-------
+
+
+anonymous blocks: not saved in server, saved in client. unnanmed blocks, they do not accept parametetrs.
+
+------
+
+
+named block: 
+
+
+
+CREATE or replace procedue procedure-name:
+
+AS/IN
+
+
+(todo)
+
+
+------
+
+%type attribute are pretty cool.
+
+---------------------------------------------------------------------
+---------------------------------------------------------------------
+
+
+
+
+Basic examples:
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;
+	v_ENAME EMP.ENAME%TYPE;
+	v_COUNT NUMBER := 0;
+BEGIN
+	select ENAME
+	into V_ENAME
+	from emp
+	where empno = v_empno;
+	dbms_output.put_line('employee record');	
+	dbms_output.put_line('Emp name' || CHR(9) || V_ENAME);
+	dbms_output.put_line('Emp name' || CHR(9) || V_EMPNO);
+END;
+/
+
+
+
+
+----------
+
+LOCAL SUBPROGRAMS:
+
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;
+	v_ENAME EMP.ENAME%TYPE;
+	v_COUNT NUMBER := 0;
+	PROCEDURE GREETINGS
+	IS
+	BEGIN
+		dbms_output.put_line('hola greetings');
+	END GREETINGS;
+BEGIN
+	select ENAME
+	into V_ENAME
+	from emp
+	where empno = v_empno;
+	GREETINGS;
+	GREETINGS;
+	GREETINGS;
+	dbms_output.put_line(' employee record');
+	dbms_output.put_line('Emp name' || CHR(9) || V_ENAME);
+	dbms_output.put_line('Emp name' || CHR(9) || V_EMPNO);
+END;
+/
+
+
+
+
+------
+Also fetch salaries:
+
+
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;
+	v_ENAME EMP.ENAME%TYPE;
+	v_COUNT NUMBER := 0;
+	v_sal emp.sal%type := 0;
+	PROCEDURE GREETINGS
+	IS
+	BEGIN
+		dbms_output.put_line('hola greetings');
+	END GREETINGS;
+BEGIN
+	select ENAME , SAL
+	into V_ENAME , V_SAL
+	from emp
+	where empno = v_empno;
+	GREETINGS;
+	dbms_output.put_line(' employee record');
+	dbms_output.put_line('Emp name' || CHR(9) || V_ENAME || chr(10) || 'salary :' || v_sal);
+	dbms_output.put_line('Emp name' || CHR(9) || V_EMPNO);
+END;
+/
+
+
+-------
+
+
+With composite variables:
+
+
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;
+	
+	type emp_record_type is record 
+	(
+		v_ENAME EMP.ENAME%TYPE,
+		v_sal emp.sal%type := 0,
+		v_job emp.job%type,
+		v_mgr emp.mgr%type
+	);
+	
+	emp_rec emp_record_type;
+	
+
+
+	v_COUNT NUMBER := 0;
+	PROCEDURE GREETINGS
+	IS
+	BEGIN
+		dbms_output.put_line('hola greetings');
+	END GREETINGS;
+BEGIN
+	select ENAME , SAL , job, mgr
+	into emp_rec
+	from emp
+	where empno = v_empno;
+	GREETINGS;
+	dbms_output.put_line(' employee record');
+	dbms_output.put_line('Emp name' || CHR(9) || emp_rec.V_ENAME || chr(10) || 'salary : ' || emp_rec.v_sal || chr(10) || 'manager : ' || emp_rec.v_mgr );
+	dbms_output.put_line('Emp name' || CHR(9) || V_EMPNO);
+END;
+/
+
+
+
+-------
+
+more composite variables:
+ 
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;
+	v_deptno dept.deptno%type := &P_deptno;
+
+
+	type emp_record_type is record 
+	(
+		v_ENAME EMP.ENAME%TYPE,
+		v_sal emp.sal%type := 0,
+		v_job emp.job%type,
+		v_mgr emp.mgr%type
+	);
+	
+	emp_rec emp_record_type;
+
+	dept_rec dept%rowtype;
+
+	v_COUNT NUMBER := 0;
+	PROCEDURE GREETINGS
+	IS
+	BEGIN
+		dbms_output.put_line('hola greetings');
+	END GREETINGS;
+BEGIN
+	select *
+        into dept_rec
+	from dept
+	where deptno = v_deptno;
+
+	dbms_output.put_line ( ' dname ' || chr(9) || dept_rec.dname || chr(10) || 'location  ' || dept_rec.loc);
+	
+
+	select ENAME , SAL , job, mgr
+	into emp_rec
+	from emp
+	where empno = v_empno;
+	GREETINGS;
+	dbms_output.put_line(' employee record');
+	dbms_output.put_line('Emp name' || CHR(9) || emp_rec.V_ENAME || chr(10) || 'salary : ' || emp_rec.v_sal || chr(10) || 'manager : ' || emp_rec.v_mgr );
+	dbms_output.put_line('Emp name' || CHR(9) || V_EMPNO);
+END;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
