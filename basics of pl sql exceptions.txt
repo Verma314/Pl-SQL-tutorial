@@ -1,3 +1,5 @@
+
+
 what are constraints?
 
 	business rules.
@@ -9,7 +11,11 @@ what are constraints?
 
 	not null       - allows duplicates
 
- 	check 
-	unique
-	composite key
-	suggogate
+ 	check 	       - validations
+	unique         - allwo nulls, do not alow duplicates
+	composite key  - primary key on multiple columns
+	suggogate      -
+
+	OLTP           - 
+	OLAP
+	DM 	       -
