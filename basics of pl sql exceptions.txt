@@ -1,21 +1,208 @@
-
-
+	
+	
 what are constraints?
-
+	
 	business rules.
 	validations at table/column level
-
+	
 	primary keys   - 1 pk per table, no dups, no nulls,
-
+	
 	foreign kets   - allows duplicates, allows null, muliple fk
-
+	
 	not null       - allows duplicates
-
+	
  	check 	       - validations
 	unique         - allwo nulls, do not alow duplicates
 	composite key  - primary key on multiple columns
-	suggogate      -
-
+	surrogate      - ??
+		       - 		
 	OLTP           - 
-	OLAP
-	DM 	       -
+	OLAP	       - historical data
+	DM 	       - data mining (??)
+
+
+
+
+* exceptions are of three kinds:
+. predefined  -- oracle exceptions, ORA
+. non-predefined -- oracle exceptions, ORA, 
+. user defined   --- non-oracle exceptions 20000 - 20999
+
+
+* handlers:
+. handlers are predefined with an oracle error
+. 20+ handlers
+. do not decalre a handler
+. do not associate an err#
+. do not propogate
+. just anticipate.
+
+
+
+
+         
+=======================================================================
+=======================================================================
+-- exceptions:
+
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;
+	v_deptno dept.deptno%type := &P_deptno;
+	type emp_record_type is record 
+	(
+		v_ENAME EMP.ENAME%TYPE,
+		v_sal emp.sal%type := 0,
+		v_job emp.job%type,
+		v_mgr emp.mgr%type
+	);
+	
+	emp_rec emp_record_type;
+
+	dept_rec dept%rowtype;
+
+	v_COUNT NUMBER := 0;
+	PROCEDURE GREETINGS
+	IS
+	BEGIN
+		dbms_output.put_line('hola greetings');
+	END GREETINGS;
+BEGIN
+	select *
+        into dept_rec
+	from dept
+	where deptno = v_deptno;
+
+	dbms_output.put_line ( ' dname ' || chr(9) || dept_rec.dname || chr(10) || 'location  ' || dept_rec.loc);
+	
+
+	select ENAME , SAL , job, mgr
+	into emp_rec
+	from emp
+	where empno = v_empno;  -- if wrong empno
+	GREETINGS;
+	dbms_output.put_line(' employee record');
+	dbms_output.put_line('Emp name' || CHR(9) || emp_rec.V_ENAME || chr(10) || 'salary : ' || emp_rec.v_sal || chr(10) || 'manager : ' || emp_rec.v_mgr );
+	dbms_output.put_line('Emp name' || CHR(9) || V_EMPNO);
+EXCEPTION
+	when no_data_found then
+	dbms_output.put_line('hey no data found');
+	when others then
+	dbms_output.put_line(sqlcode || chr(10));
+END;
+/
+
+===============
+
+
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;  -- variable datatype 
+	v_ename emp.ENAME%type := '&p_ename';
+	v_sal emp.sal%type := &p_sal;
+	v_deptno emp.deptno%type := '&P_deptno';
+	v_job emp.job%type := '&p_job';
+BEGIN
+	insert into emp ( empno, ENAME , sal , deptno, job )
+	values (v_empno, v_ename, v_sal, v_deptno, v_job);
+
+	dbms_output.put_line( sql%rowcount || ' ' || 'record inserted' );
+commit;
+exception
+	when dup_val_on_index then
+	dbms_output.put_line('Employee code already exists');
+	when others then
+	dbms_output.put_line('hi fren, some error you got there' || sqlcode ||  '  ' || sqlerrm );
+end;
+
+
+
+
+=============
+
+User defined handler. 
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;  -- variable datatype 
+	v_ename emp.ENAME%type := '&p_ename';
+	v_sal emp.sal%type := &p_sal;
+	v_deptno emp.deptno%type := '&P_deptno';
+	v_job emp.job%type := '&p_job';
+
+
+	--our own handler for 2291 -- integrity error
+	e_deptno exception; -- non-predefined
+	pragma exception_init (e_deptno, -02291); -- we associate it with oracle error number
+
+
+BEGIN
+	insert into emp ( empno, ENAME , sal , deptno, job )
+	values (v_empno, v_ename, v_sal, v_deptno, v_job);
+
+	dbms_output.put_line( sql%rowcount || ' ' || 'record inserted' );
+commit;
+exception
+	when e_deptno then 
+	dbms_output.put_line('Department number does not exist');
+	when dup_val_on_index then
+	dbms_output.put_line('Employee code already exists'); --predefined, because no DECLAREation, no handling
+	when others then
+	dbms_output.put_line('hi fren, some error you got there' || sqlcode ||  '  ' || sqlerrm );
+end;
+
+
+
+
+============
+
+
+User defined handler.
+Application errors. 
+
+DECLARE
+	v_empno emp.empno%type := &P_EMPNO;  -- variable datatype 
+	v_ename emp.ENAME%type := '&p_ename';
+	v_sal emp.sal%type := &p_sal;
+	v_deptno emp.deptno%type := '&P_deptno';
+	v_job emp.job%type := '&p_job';
+
+
+	--our own handler for 2291 -- integrity error
+	e_deptno exception; -- non-predefined
+	pragma exception_init (e_deptno, -02291); -- we associate it with oracle error number
+
+	e_sal exception;
+BEGIN
+	if ( v_sal <= 0 ) then
+		raise e_sal;
+	else
+		insert into emp ( empno, ENAME , sal , deptno, job )
+		values (v_empno, v_ename, v_sal, v_deptno, v_job);
+		dbms_output.put_line( sql%rowcount || ' ' || 'record inserted' );
+	end if ; -- space
+commit;
+exception
+	when e_sal then  -- user defined, because we have declared it -- but not associated
+	raise_application_error ( -611996, 'Salary must be greater than zero' ); -- why raise (propagate)? because this HAS to go to the CLIENT.
+	when e_deptno then 
+	dbms_output.put_line('Department number does not exist');
+	when dup_val_on_index then
+	dbms_output.put_line('Employee code already exists'); --predefined, because no DECLAREation, no handling
+	when others then
+	dbms_output.put_line('hi fren, some error you got there' || sqlcode ||  '  ' || sqlerrm );
+end;
+
+
+
+
+============
+
+
+
+
+
+
+
+
+
+
