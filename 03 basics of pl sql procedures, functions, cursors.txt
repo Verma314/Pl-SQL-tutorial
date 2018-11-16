@@ -1,0 +1,163 @@
+
+
+procedure:
+
+- named subprogram,
+- create a procedure for any particular actions
+- allow DML
+- allow TCL
+- accepts args
+= proc has 3 modes IN OUT INOUT
+- in a proc return keyword is not required
+- out mode returns a value
+- can not be called in a select stmt
+- out mode returns a value
+
+
+function:
+-- named subprogram,
+- create a fxn for calculations
+- avoid DML else side effects
+-- avoid TCL else side effects
+- accepts arguments
+- function has 3 modes IN OUT INOUT
+- return keyword at least 2 times [ head + body]
+
+
+
+
+Modes, common to both procedure and fxns
+
+
+- IN
+	default mode
+	can have a default keyword
+	can acceept a var, a default value, a constant value etc,
+	Ub variable cannot be initialized
+
+- out 
+	must specify the mode
+	must have an empty variable
+
+- INOUT 
+	must specify the mode
+	have an initialized variable
+
+
+* in order to create a proc, function, package. A DBA must grant a privelage.
+
+	grant create procedure to scott;
+	grant connect, resource to scott;
+
+
+
+-------------------
+
+
+create or replace procedure accept_empno
+(p_empno IN emp.empno%type default 7902,
+ p_ename OUT emp.ename%type,
+ p_sal out emp.sal%type,
+ p_deptno OUT emp.deptno%type)
+is
+-- declarative section
+	type emp_record_type is record
+	(
+		v_ename emp.ename%type,
+		v_sal emp.sal%type,
+		v_deptno emp.deptno%type
+	);
+	emp_rec emp_record_type;
+begin
+
+	select ename, sal , deptno
+	into p_ename, p_sal, p_deptno
+	from emp
+	where empno = p_empno; 
+dbms_output.put_line( sql%rowcount || ' ' ||  'records selected' ); 
+end accept_empno;
+
+
+
+
+--------------------
+
+declare
+	v_empno emp.empno%type := &p_empno;
+	-- record var below:	
+	type emp_type is record
+		( v_ename emp.ename%type,
+		  v_sal emp.sal%type,
+		  v_deptno emp.deptno%type
+		);
+		emp_rec emp_type;
+
+begin
+	-- positional method
+	accept_empno ( v_empno, p_ename => emp_rec.v_ename, p_sal => emp_rec.v_sal, p_deptno => emp_rec.v_deptno);  
+	dbms_output.put_line( v_empno || ' ' || emp_rec.v_ename  );
+end;
+
+
+
+======================
+
+
+
+cursor : small temporary area in memory. 
+pl sql returns one and only one row. 
+to process more than one row we need cursors. 
+therefor a cursor is a small temporary work area in the memory.
+
+
+4 stages
+. declare
+. open
+. fetch
+. close
+
+attributes
+%isopen
+%found
+%notfound
+%rowcount
+
+cursor <> is sql statement
+cursor <> is (parameter) sql stmt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
